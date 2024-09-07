@@ -14,7 +14,7 @@ struct AppearancePanel: View {
   @Default(.CommentLinkDefSettings) var commentLinkDefSettings
 
   @Environment(\.useTheme) private var theme
-  @State private var appIconManager = AppIconManger()
+//  @State private var appIconManager = AppIconManger()
   
   var body: some View {
     List {
@@ -31,17 +31,17 @@ struct AppearancePanel: View {
         }
         .listRowSeparator(.hidden)
         
-        Section {
-          WNavigationLink(value: .setting(.appIcon)) {
-            HStack{
-              Image(uiImage: appIconManager.current.preview)
-                .resizable()
-                .frame(width: 32, height: 32)
-                .mask(RoundedRectangle(cornerSize: CGSize(width: 10, height: 10)))
-              Text("App icon")
-            }
-          }
-        }
+        //Section {
+        //  WNavigationLink(value: .setting(.appIcon)) {
+        //    HStack{
+        //      Image(uiImage: appIconManager.current.preview)
+        //        .resizable()
+        //        .frame(width: 32, height: 32)
+        //        .mask(RoundedRectangle(cornerSize: CGSize(width: 10, height: 10)))
+        //      Text("App icon")
+        //    }
+        //  }
+        //}
         .listSectionSpacing(15)
         
         Section {
