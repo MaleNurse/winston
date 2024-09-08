@@ -16,11 +16,12 @@ struct PostContent: View, Equatable {
     lhs.post.id == rhs.post.id
   }
   
-  @ObservedObject var post: Post
-  @ObservedObject var winstonData: PostWinstonData
+  var post: Post
+  var winstonData: PostWinstonData
   var sub: Subreddit
   var forceCollapse: Bool = false
   @State private var collapsed = false
+  @State private var showSpoiler = false
   @Default(.PostPageDefSettings) private var defSettings
   @Environment(\.useTheme) private var selectedTheme
   
@@ -49,6 +50,7 @@ struct PostContent: View, Equatable {
       }
       
       Group {
+        HStack {
         Text(data.title)
           .fontSize(postsTheme.titleText.size, .semibold)
           .foregroundColor(postsTheme.titleText.color())
@@ -57,17 +59,32 @@ struct PostContent: View, Equatable {
           .onAppear { Task { await post.toggleSeen(true) } }
           .listRowInsets(EdgeInsets(top: postsTheme.padding.vertical, leading: postsTheme.padding.horizontal, bottom: postsTheme.spacing / 2, trailing: selectedTheme.posts.padding.horizontal))
 
+          if MarkdownUtil.containsSpoiler(data.selftext ?? "") {
+              Spacer()
+              Image(systemName: showSpoiler ? "eye.slash.fill" : "eye.fill")
+                .onTapGesture {
+                  withAnimation {
+                   showSpoiler = !showSpoiler
+                  }
+                }
+          }
+        }
+        
         Group {
           if !isCollapsed {
             VStack(spacing: 0) {
               VStack(spacing: selectedTheme.posts.spacing) {
                 if let extractedMedia = winstonData.extractedMediaForcedNormal {
-                  MediaPresenter(postDimensions: $winstonData.postDimensionsForcedNormal, controller: nil, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: {}, cornerRadius: selectedTheme.postLinks.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, media: extractedMedia, over18: over18, compact: false, contentWidth: winstonData.postDimensionsForcedNormal.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: Defaults[.PostLinkDefSettings].maxMediaHeightScreenPercentage, resetVideo: nil)
+                  MediaPresenter(winstonData: winstonData, fullPage: true, controller: nil, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: {}, cornerRadius: selectedTheme.postLinks.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, media: extractedMedia, over18: over18, compact: false, contentWidth: winstonData.postDimensionsForcedNormal.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: Defaults[.PostLinkDefSettings].maxMediaHeightScreenPercentage, resetVideo: nil)
                 }
                 
-                if !data.selftext.isEmpty {
-                  Markdown(MarkdownUtil.formatForMarkdown(data.selftext))
+                if !(data.selftext?.isEmpty ?? true) {
+                    HStack{
+                  Markdown(MarkdownUtil.formatForMarkdown(data.selftext ?? "", showSpoiler: showSpoiler))
                     .markdownTheme(.winstonMarkdown(fontSize: selectedTheme.posts.bodyText.size, lineSpacing: selectedTheme.posts.linespacing))
+                        
+                        Spacer()
+                    }
                 }
               }
               .nsfw(over18 && defSettings.blurNSFW)

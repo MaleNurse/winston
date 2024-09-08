@@ -9,7 +9,7 @@ import SwiftUI
 import Defaults
 
 struct GlobalDestinationsProvider<C: View>: View {
-  @ObservedObject private var nav = Nav.shared
+  @State var nav = Nav.shared
   
   @Environment(\.tabBarHeight) private var tabBarHeight
 
@@ -24,7 +24,6 @@ struct GlobalDestinationsProvider<C: View>: View {
             case .editingTheme(let theme): ThemeEditPanel(theme: theme)
             case .announcement(let announcement): AnnouncementSheet(announcement: announcement)
             case .editingCredential(let cred): CredentialEditStack(credential: cred).id("editing-credential-view-\(cred.id)")
-            case .tipJar: TipJar()
             case .onboarding: Onboarding().interactiveDismissDisabled(true)
             case .sharedTheme(let themeData): ThemeStoreDetailsView(themeData: themeData)
             }

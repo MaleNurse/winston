@@ -30,7 +30,7 @@ struct FloatingMainTrigger: View, Equatable {
   private let longPressDuration: Double = 0.275
   
   var body: some View {
-    Image(systemName: toggled || menuOpen ? "xmark" : "slider.vertical.3")
+    Image(systemName: toggled || menuOpen ? "xmark" : "slider.horizontal.3")
       .contentTransition(.symbolEffect)
       .transaction { trans in
         trans.animation = .easeInOut(duration: longPressDuration)
@@ -42,7 +42,6 @@ struct FloatingMainTrigger: View, Equatable {
       .background(Circle().fill(.white.opacity((toggled || menuOpen ? 0.5 : 0) + (pressingDown ? 0.225 : 0))).blendMode(.overlay))
       .floating()
       .scaleEffect((menuOpen || toggled ? actionsSize / size : 1) * (pressingDown ? 0.85 : 1))
-//      .frame(width: hitboxSize, height: hitboxSize)
       .increaseHitboxOf(size, by: 1.125, shape: Circle(), disable: menuOpen)
       .animation(.bouncy(duration: longPressDuration, extraBounce: 0.225), value: pressingDown)
       .highPriorityGesture(

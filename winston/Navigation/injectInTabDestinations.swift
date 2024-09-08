@@ -9,20 +9,23 @@ import SwiftUI
 import Defaults
 
 struct AttachViewControllerToRouterModifier: ViewModifier {
-  var viewControllerHolder: ViewControllerHolder
-  
+  var tabID: Nav.TabIdentifier
   @Default(.BehaviorDefSettings) private var behaviorDefSettings
   
   func body(content: Content) -> some View {
     content
-      .background { AttachViewControllerToRouterView(viewControllerHolder: viewControllerHolder, disable: !behaviorDefSettings.enableSwipeAnywhere) }
+      .background { AttachViewControllerToRouterView(tabID: tabID, disable: !behaviorDefSettings.enableSwipeAnywhere) }
   }
 }
 
 extension View {
-  func injectInTabDestinations(viewControllerHolder: ViewControllerHolder) -> some View {
+  func attachViewControllerToRouter(tabID: Nav.TabIdentifier) -> some View {
+    self.modifier(AttachViewControllerToRouterModifier(tabID: tabID))
+  }
+  
+  func injectInTabDestinations() -> some View {
     self
-      .modifier(AttachViewControllerToRouterModifier(viewControllerHolder: viewControllerHolder))
+//      .attachViewControllerToRouter()
       .navigationDestination(for: Router.NavDest.self, destination: { dest in
         switch dest {
         case .reddit(let reddDest):
@@ -36,7 +39,7 @@ extension View {
               PostView(post: post, subreddit: sub, highlightID: highlightID)
             }
           case .subFeed(let sub):
-            SubredditPosts(subreddit: sub).equatable()
+            SubredditPosts(subreddit: sub)
           case .subInfo(let sub):
             SubredditInfo(subreddit: sub)
           case .multiFeed(let multi):
@@ -82,7 +85,7 @@ extension View {
 
 
 fileprivate struct AttachViewControllerToRouterView: UIViewRepresentable {
-  var viewControllerHolder: ViewControllerHolder
+  var tabID: Nav.TabIdentifier
   var disable: Bool
   func makeUIView(context: Context) -> some UIView {
     return UIView()
@@ -91,12 +94,12 @@ fileprivate struct AttachViewControllerToRouterView: UIViewRepresentable {
   func updateUIView(_ uiView: UIViewType, context: Context) {
     DispatchQueue.main.async {
       if let controller = uiView.parentViewController {
-        viewControllerHolder.controller = controller
+        Nav.shared[tabID].navController.controller = controller
       }
       if disable {
-        viewControllerHolder.removeGestureFromViews()
+        Nav.shared.activeRouter.navController.removeGestureFromViews()
       } else {
-        viewControllerHolder.addGestureToViews()
+        Nav.shared.activeRouter.navController.addGestureToViews()
       }
     }
   }

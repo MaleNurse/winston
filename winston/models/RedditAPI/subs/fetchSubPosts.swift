@@ -10,14 +10,13 @@ import Alamofire
 import Defaults
 
 extension RedditAPI {
-  func fetchSubPosts(_ id: String, sort: SubListingSortOption = .best, after: String? = nil, searchText: String? = nil) async -> ([ListingChild<PostData>]?, String?)? {
-      let subID = buildSubID(id, sort, after, searchText)
-      let limit = Defaults[.SubredditFeedDefSettings].chunkLoadSize
-      let params = FetchSubsPayload(limit: limit, after: after)
-      
+  func fetchSubPosts(_ id: String, limit: Int = Defaults[.SubredditFeedDefSettings].chunkLoadSize, sort: SubListingSortOption = .best, after: String? = nil) async -> ([ListingChild<Either<PostData, CommentData>>]?, String?)? {
+      let subID = buildSubID(id, sort, after)
+    let params = FetchSubPostsPayload(limit: limit, after: after)
+          
       let urlString = "\(RedditAPI.redditApiURLBase)\(subID)".replacingOccurrences(of: " ", with: "%20")
-      
-      switch await self.doRequest(urlString, method: .get, params: params, paramsLocation: .queryString, decodable: Listing<PostData>.self)  {
+
+      switch await self.doRequest(urlString, method: .get, params: params, paramsLocation: .queryString, decodable: Listing<Either<PostData, CommentData>>.self)  {
       case .success(let data):
         return (data.data?.children, data.data?.after)
       case .failure(let error):
@@ -42,14 +41,14 @@ extension RedditAPI {
     }
   }
   
-  private func buildSubID(_ id: String, _ sort: SubListingSortOption?, _ after: String?, _ searchText: String?) -> String {
+  private func buildSubID(_ id: String, _ sort: SubListingSortOption?, _ after: String?, _ searchText: String? = nil) -> String {
     let appendedFileType = ".json"
     var subID = ""
   
-    if id != "saved" {
+    if id != savedKeyword {
       subID = id == "" ? "/" : id.hasPrefix("/r/") ? id : "/r/\(id)"
     } else if let username = RedditAPI.shared.me?.data?.name {
-      subID = "/user/\(username)/\(id)"
+      subID = "/user/\(username)/saved"
     } else {
       print("Sub ID failed to build. Invalid logic... content will fail to load.")
     }
@@ -105,6 +104,24 @@ extension RedditAPI {
       return "?t=year"
     case .all:
       return "?t=all"
+    }
+  }
+  
+  struct FetchSubPostsPayload: Codable {
+    var limit: Int
+    var after: String?
+    var count: Int
+    var f: String?
+    var raw_json: Int
+    
+    init(limit: Int, after: String? = nil, count: Int = 0, flair: String? = nil, raw_json: Int = 1) {
+      self.limit = limit
+      self.after = after
+      self.count = count
+      if let flair {
+        self.f = "flair_name:\"\(flair)\""
+      }
+      self.raw_json = raw_json
     }
   }
 }

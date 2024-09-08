@@ -10,12 +10,7 @@ import Defaults
 import SwiftUIIntrospect
 import MarkdownUI
 
-class Sizer: ObservableObject {
-  @Published var size: CGSize = .zero
-}
-
 struct CommentLinkContentPreview: View {
-  @ObservedObject var sizer: Sizer
   var forcedBodySize: CGSize?
   var showReplies = true
   var arrowKinds: [ArrowKind]
@@ -25,11 +20,15 @@ struct CommentLinkContentPreview: View {
   var comment: Comment
   var avatarsURL: [String:String]?
   var body: some View {
-    if let data = comment.data, let winstonData = comment.winstonData {
+    if let winstonData = comment.winstonData, let forcedBodySize {
+      
       VStack(alignment: .leading, spacing: 0) {
-        CommentLinkContent(forcedBodySize: sizer.size, showReplies: showReplies, arrowKinds: arrowKinds, indentLines: indentLines, lineLimit: lineLimit, post: post, comment: comment, winstonData: winstonData, avatarsURL: avatarsURL)
+        CommentLinkContent(forcedBodySize: nil, showReplies: showReplies, arrowKinds: arrowKinds, indentLines: indentLines, lineLimit: lineLimit, post: post, comment: comment, winstonData: winstonData, avatarsURL: avatarsURL)
       }
-      .frame(width: .screenW, height: sizer.size.height + CGFloat((data.depth != 0 ? 42 : 30) + 16))
+//      .frame(width: .screenW, height: forcedBodySize.height + CGFloat((data.depth != 0 ? 42 : 30) + 16))
+      .padding(.vertical, 12)
+      .frame(width: .screenW)
+      .fixedSize()
     }
   }
 }
@@ -47,16 +46,12 @@ struct CommentLinkContent: View {
   var indentLines: Int? = nil
   var lineLimit: Int?
   var post: Post?
-  @ObservedObject var comment: Comment
-  @ObservedObject var winstonData: CommentWinstonData
+  var comment: Comment
+  var winstonData: CommentWinstonData
   var avatarsURL: [String:String]?
 
-  @State private var sizer = Sizer()
-  @State private var showReplyModal = false
-  @State private var pressing = false
-  @State private var dragging = false
+  @SilentState private var size: CGSize = .zero
   @State private var offsetX: CGFloat = 0
-  @State private var bodySize: CGSize = .zero
   @State private var highlight = false
   @State private var showSpoiler = false
   @State private var commentSwipeActions: SwipeActionsSet = Defaults[.CommentLinkDefSettings].swipeActions
@@ -222,12 +217,13 @@ struct CommentLinkContent: View {
               VStack {
                 Group {
                   if lineLimit != nil {
-                    Text(body.md())
+                    Text(body)
                       .lineLimit(lineLimit)
                   } else {
                     HStack {
                       Markdown(MarkdownUtil.formatForMarkdown(body, showSpoiler: showSpoiler))
                         .markdownTheme(.winstonMarkdown(fontSize: theme.theme.bodyText.size, lineSpacing: theme.theme.linespacing, textSelection: selectable))
+                        .fixedSize(horizontal: false, vertical: true)
                       
                       if MarkdownUtil.containsSpoiler(body) {
                         Spacer()
@@ -256,10 +252,10 @@ struct CommentLinkContent: View {
               )
               .frame(maxWidth: .infinity, alignment: .topLeading)
               .padding(.top, theme.theme.bodyAuthorSpacing)
-              .padding(.bottom, max(0, theme.theme.innerPadding.vertical + (data.depth == 0 && comment.childrenWinston.data.count == 0 ? -theme.theme.cornerRadius : theme.theme.innerPadding.vertical)))
+              .padding(.bottom, max(0, theme.theme.innerPadding.vertical + (data.depth == 0 && comment.childrenWinston.count == 0 ? -theme.theme.cornerRadius : theme.theme.innerPadding.vertical)))
               .scaleEffect(1)
               .contentShape(Rectangle())
-              .background(forcedBodySize != nil ? nil : GeometryReader { geo in Color.clear.onAppear { sizer.size = geo.size } } )
+              .measure($size)
             } else {
               Spacer()
             }
@@ -309,7 +305,7 @@ struct CommentLinkContent: View {
           
         }
       } preview: {
-        CommentLinkContentPreview(sizer: sizer, forcedBodySize: sizer.size, showReplies: showReplies, arrowKinds: arrowKinds, indentLines: indentLines, lineLimit: lineLimit, post: post, comment: comment, avatarsURL: avatarsURL)
+        CommentLinkContentPreview(forcedBodySize: size, showReplies: showReplies, arrowKinds: arrowKinds, indentLines: indentLines, lineLimit: lineLimit, post: post, comment: comment, avatarsURL: avatarsURL)
           .id("\(data.id)-preview")
       }
     } else {

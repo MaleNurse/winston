@@ -11,16 +11,22 @@ import WhatsNewKit
 //import SceneKit
 
 struct Settings: View {
-  @ObservedObject var router: Router
+  @State var router: Router
+  
+  
+  @ObservedObject private var winstonAPI = WinstonAPI.shared
   @Environment(\.openURL) private var openURL
-//  @Default(.likedButNotSubbed) var likedButNotSubbed
+  //  @Default(.likedButNotSubbed) private var likedButNotSubbed
   @Environment(\.useTheme) private var selectedTheme
+  @Environment(\.openTipJar) private var openTipJar
   @State private var id = UUID().uuidString
+  @State private var presentingWhatsNew: Bool = false
+  @State private var presentingAnnouncement: Bool = false
   
-  @ObservedObject var winstonAPI = WinstonAPI.shared
+  init(router: Router) {
+    self._router = .init(initialValue: router)
+  }
   
-  @State var presentingWhatsNew: Bool = false
-  @State var presentingAnnouncement: Bool = false
   var body: some View {
     NavigationStack(path: $router.fullPath) {
       
@@ -50,7 +56,8 @@ struct Settings: View {
             }
             
             WListButton {
-              openURL(URL(string: "https://ko-fi.com/locafe")!)
+              openTipJar()
+//              openURL(URL(string: "https://ko-fi.com/locafe")!)
             } label: {
               Label {
                 Text("Tip jar")
@@ -60,6 +67,10 @@ struct Settings: View {
                   .scaledToFit()
               }
             }
+              
+              WSListButton("Report a Bug", icon: "ladybug.fill") {
+                openURL(URL(string: "https://github.com/lo-cafe/winston/issues")!)
+              }
 
           }
         }
@@ -73,7 +84,8 @@ struct Settings: View {
       .themedListBG(selectedTheme.lists.bg)
       .scrollContentBackground(.hidden)
       .navigationTitle("Settings")
-      .injectInTabDestinations(viewControllerHolder: router.navController)
+      .attachViewControllerToRouter(tabID: .settings)
+      .injectInTabDestinations()
     }
   }
 }

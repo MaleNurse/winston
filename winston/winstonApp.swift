@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreData
 import WhatsNewKit
+import Nuke
 
 var shortcutItemToProcess: UIApplicationShortcutItem?
 @main
@@ -24,7 +25,9 @@ struct winstonApp: App {
           \.whatsNew,
            WhatsNewEnvironment(currentVersion: .current(), whatsNewCollection: getCurrentChangelog())
         )
-        
+        .task {
+          ImagePipeline.shared = ImagePipeline(configuration: .withDataCache(name: "lo.cafe.winston.datacache", sizeLimit: 1024 * 1024 * 300))
+        }
     }
   }
   
@@ -35,7 +38,7 @@ struct winstonApp: App {
       return ["name" : "search" as NSSecureCoding]
     }
     var savedInfo: [String: NSSecureCoding] {
-      return ["name" : "saved" as NSSecureCoding]
+      return ["name" : savedKeyword as NSSecureCoding]
     }
     var statususerInfo: [String: NSSecureCoding] {
       return ["name" : "status" as NSSecureCoding]

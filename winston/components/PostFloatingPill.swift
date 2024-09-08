@@ -10,8 +10,8 @@ import Defaults
 import AlertToast
 
 struct PostFloatingPill: View {
-  @ObservedObject var post: Post
-  @ObservedObject var subreddit: Subreddit
+  var post: Post
+  var subreddit: Subreddit
   var updateComments: (()->())?
   var showUpVoteRatio: Bool
   
@@ -25,7 +25,7 @@ struct PostFloatingPill: View {
   var body: some View {
     Group {
       if let data = post.data {
-        let permalink = "https://reddit.com\(data.permalink.escape.urlEncoded)"
+        let permalink = "https://reddit.com\(data.permalink.urlEncoded)"
         
         if !selectedTheme.posts.inlineFloatingPill {
           Group {
@@ -53,7 +53,7 @@ struct PostFloatingPill: View {
                       }
                       let newPostInBox = PostInBox(
                         id: data.id, fullname: data.name,
-                        title: data.title, body: data.selftext,
+                        title: data.title, body: data.selftext ?? "",
                         subredditIconURL: subIcon, img: nil,
                         subredditName: data.subreddit, authorName: data.author,
                         score: data.ups, commentsCount: data.num_comments,
@@ -134,7 +134,7 @@ struct PostFloatingPill: View {
                   }
                   let newPostInBox = PostInBox(
                     id: data.id, fullname: data.name,
-                    title: data.title, body: data.selftext,
+                    title: data.title, body: data.selftext ?? "",
                     subredditIconURL: subIcon, img: nil,
                     subredditName: data.subreddit, authorName: data.author,
                     score: data.ups, commentsCount: data.num_comments,

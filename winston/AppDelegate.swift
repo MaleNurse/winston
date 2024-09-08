@@ -28,7 +28,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   }
     
   func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-    setAudioToMixWithOthers()
     
     if let shortcutItem = options.shortcutItem {
       shortcutItemToProcess = shortcutItem
@@ -39,26 +38,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     return sceneConfiguration
   }
-  
-  func applicationDidFinishLaunching(_ application: UIApplication) {
-    setAudioToMixWithOthers()
-    
-    let defaultPipeline = ImagePipeline { config in
-      let dataCache = try? DataCache(name: "lo.cafe.winston.datacache")
-      dataCache?.sizeLimit = 1024 * 1024 * 300
-      config.dataCache = dataCache
-      let dataLoader: DataLoader = {
-        let config = URLSessionConfiguration.default
-        config.urlCache = nil
-        return DataLoader(configuration: config)
-      }()
-      config.dataLoader = dataLoader
-      config.dataCachePolicy = .storeAll
-    }
-    ImagePipeline.shared = defaultPipeline
-  }
-  
-  
 }
 
 class CustomSceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -67,17 +46,10 @@ class CustomSceneDelegate: UIResponder, UIWindowSceneDelegate {
   }
 }
 
-public func setAudioToMixWithOthers(_ activateplayback: Bool = false) {
-	do {
-		let audioSession = AVAudioSession.sharedInstance()
-		if (activateplayback == true) {
-			try audioSession.setCategory(.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers])
-			try audioSession.setActive(true)
-		} else {
-			try audioSession.setCategory(.ambient, options: [.mixWithOthers])
-			try audioSession.setActive(false, options: AVAudioSession.SetActiveOptions.notifyOthersOnDeactivation)
-		}
-	} catch {
-		print("Error setting audio session to mix with others")
-	}
+public func setAudioToMixWithOthers() {
+    do {
+        try AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+    } catch {
+        print("Error setting audio session: \(error)")
+    }
 }

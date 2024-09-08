@@ -24,6 +24,7 @@
       }
     },
     " " : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -447,6 +448,9 @@
     "Add a new credential" : {
 
     },
+    "Add More Items" : {
+
+    },
     "Advanced" : {
       "localizations" : {
         "de" : {
@@ -811,9 +815,6 @@
         }
       }
     },
-    "Compact" : {
-
-    },
     "Compact Mode" : {
       "localizations" : {
         "de" : {
@@ -913,6 +914,7 @@
 
     },
     "Current Theme" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1070,6 +1072,7 @@
       }
     },
     "Disable subs list letter sections" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1084,6 +1087,9 @@
           }
         }
       }
+    },
+    "Disable Subs List Letter Sections" : {
+
     },
     "DISCARD" : {
       "localizations" : {
@@ -1219,9 +1225,6 @@
 
     },
     "Edit credential" : {
-
-    },
-    "Edit filter" : {
 
     },
     "Enabling the extension" : {
@@ -1452,7 +1455,6 @@
       }
     },
     "Force subs as tag" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1606,6 +1608,7 @@
       }
     },
     "Hello, World!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1783,6 +1786,9 @@
     "I'm lost!" : {
 
     },
+    "iCloud" : {
+
+    },
     "Icon" : {
       "localizations" : {
         "de" : {
@@ -1958,6 +1964,7 @@
       }
     },
     "It's also always available in the Settings tab :)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2114,9 +2121,6 @@
         }
       }
     },
-    "LOAD MORE" : {
-
-    },
     "Lock Winston With %@" : {
       "localizations" : {
         "de" : {
@@ -2184,6 +2188,9 @@
         }
       }
     },
+    "Manually reload" : {
+
+    },
     "Many of you is not aware about our patreon, which has a 1U$ tier. If each of our testers would donate 1U$/month, it'd be more than enough to allow us to focus all our time on Winston and other amazing projects." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2202,6 +2209,7 @@
       }
     },
     "Many users wanted to be able to support the project without a monthly subscription (like Patreon), so now we got a tip jar!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2420,9 +2428,6 @@
     "New credential" : {
 
     },
-    "New filter" : {
-
-    },
     "New post" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2439,6 +2444,9 @@
           }
         }
       }
+    },
+    "Next Comment Button Position" : {
+
     },
     "Nice!" : {
       "localizations" : {
@@ -2476,10 +2484,7 @@
     "No credential" : {
 
     },
-    "No filtered posts" : {
-
-    },
-    "Normal" : {
+    "Nothing around here :(" : {
 
     },
     "Now paste it here:" : {
@@ -2499,6 +2504,7 @@
       }
     },
     "Now we got a tip jar!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3121,6 +3127,7 @@
       }
     },
     "Search r/%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3167,6 +3174,9 @@
           }
         }
       }
+    },
+    "Select a tip above" : {
+
     },
     "SELECTING" : {
       "localizations" : {
@@ -3284,6 +3294,9 @@
 
     },
     "Show Divider at Top" : {
+
+    },
+    "Show Prefix on Feed Title" : {
 
     },
     "Show Self Text" : {
@@ -3592,6 +3605,7 @@
 
     },
     "Sync API Key" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3606,6 +3620,9 @@
           }
         }
       }
+    },
+    "Sync credentials" : {
+
     },
     "Take me there!" : {
 
@@ -3695,6 +3712,9 @@
           }
         }
       }
+    },
+    "Thanks for supporting the project!" : {
+
     },
     "That error seems happen randomly. It usually helps if you create another credential in Reddit site and try again." : {
 
@@ -3794,7 +3814,13 @@
     "There are two ways for doing that:" : {
 
     },
+    "There was an error" : {
+
+    },
     "There was an error importing this theme" : {
+
+    },
+    "They say the stars hide a secret..." : {
 
     },
     "This is not working yet :(" : {
@@ -3829,7 +3855,11 @@
         }
       }
     },
+    "This theme changes a few settings (like the visuals of tab/nav bars) that requires an app restart to take effect." : {
+
+    },
     "This theme changes a few settings that requires an app restart to take effect." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3892,6 +3922,9 @@
           }
         }
       }
+    },
+    "Tip %@" : {
+
     },
     "Tip jar" : {
       "localizations" : {
@@ -4245,6 +4278,9 @@
           }
         }
       }
+    },
+    "x" : {
+
     },
     "Yes" : {
       "localizations" : {

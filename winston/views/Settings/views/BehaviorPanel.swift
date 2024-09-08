@@ -19,7 +19,6 @@ struct BehaviorPanel: View {
   @Default(.GeneralDefSettings) var generalDefSettings
   @Default(.VideoDefSettings) var videoDefSettings
   
-  
   @Environment(\.useTheme) private var theme
   @State private var imageAnalyzerSupport: Bool = true
   var body: some View {
@@ -28,11 +27,11 @@ struct BehaviorPanel: View {
       Group {
         Section("General") {
           Toggle("Open Youtube Videos Externally", isOn: $behaviorDefSettings.openYoutubeApp)
-          #if !os(macOS)
-            let auth_type = Biometrics().biometricType()
-            Toggle("Lock Winston With \(auth_type)", isOn: $generalDefSettings.useAuth)
-          #endif
-
+#if !os(macOS)
+          let auth_type = Biometrics().biometricType()
+          Toggle("Lock Winston With \(auth_type)", isOn: $generalDefSettings.useAuth)
+#endif
+          
           VStack{
             Toggle("Live Text Analyzer", isOn: $behaviorDefSettings.doLiveText)
               .disabled(!imageAnalyzerSupport)
@@ -94,33 +93,25 @@ struct BehaviorPanel: View {
           Toggle("Save sort per subreddit", isOn: $subredditFeedDefSettings.perSubredditSort)
           Toggle("Open subreddit options on tap", isOn: $subredditFeedDefSettings.openOptionsOnTap)
           Toggle("Open media from feed", isOn: $postLinkDefSettings.isMediaTappable)
+          
+          
           Menu {
-            ForEach(SubListingSortOption.allCases) { opt in
-              if case .top(_) = opt {
+            ForEach(Array(SubListingSortOption.allCases), id: \.self) { opt in
+              if let children = opt.meta.children {
                 Menu {
-                  ForEach(SubListingSortOption.TopListingSortOption.allCases, id: \.self) { topOpt in
-                    Button {
-                      subredditFeedDefSettings.preferredSort = .top(topOpt)
-                    } label: {
-                      HStack {
-                        Text(topOpt.rawValue.capitalized)
-                        Spacer()
-                        Image(systemName: topOpt.icon)
+                  ForEach(children, id: \.self.meta.apiValue) { child in
+                    if let val = child.valueWithParent as? SubListingSortOption {
+                      Button(child.meta.label, systemImage: child.meta.icon) {
+                        subredditFeedDefSettings.preferredSort = val
                       }
                     }
                   }
                 } label: {
-                  Label(opt.rawVal.value.capitalized, systemImage: opt.rawVal.icon)
+                  Label(opt.meta.label, systemImage: opt.meta.icon)
                 }
               } else {
-                Button {
+                Button(opt.meta.label, systemImage: opt.meta.icon) {
                   subredditFeedDefSettings.preferredSort = opt
-                } label: {
-                  HStack {
-                    Text(opt.rawVal.value.capitalized)
-                    Spacer()
-                    Image(systemName: opt.rawVal.icon)
-                  }
                 }
               }
             }
@@ -129,39 +120,31 @@ struct BehaviorPanel: View {
               HStack {
                 Text("Default post sorting")
                 Spacer()
-                Image(systemName: subredditFeedDefSettings.preferredSort.rawVal.icon)
+                Image(systemName: subredditFeedDefSettings.preferredSort.meta.icon)
+                  .foregroundStyle(Color.accentColor)
               }
               .foregroundColor(.primary)
             }
           }
           
+          
           Menu {
-            ForEach(SubListingSortOption.allCases) { opt in
-              if case .top(_) = opt {
+            ForEach(Array(SubListingSortOption.allCases), id: \.self) { opt in
+              if let children = opt.meta.children {
                 Menu {
-                  ForEach(SubListingSortOption.TopListingSortOption.allCases, id: \.self) { topOpt in
-                    Button {
-                      subredditFeedDefSettings.preferredSearchSort = .top(topOpt)
-                    } label: {
-                      HStack {
-                        Text(topOpt.rawValue.capitalized)
-                        Spacer()
-                        Image(systemName: topOpt.icon)
+                  ForEach(children, id: \.self.meta.apiValue) { child in
+                    if let val = child.valueWithParent as? SubListingSortOption {
+                      Button(child.meta.label, systemImage: child.meta.icon) {
+                        subredditFeedDefSettings.preferredSearchSort = val
                       }
                     }
                   }
                 } label: {
-                  Label(opt.rawVal.value.capitalized, systemImage: opt.rawVal.icon)
+                  Label(opt.meta.label, systemImage: opt.meta.icon)
                 }
               } else {
-                Button {
+                Button(opt.meta.label, systemImage: opt.meta.icon) {
                   subredditFeedDefSettings.preferredSearchSort = opt
-                } label: {
-                  HStack {
-                    Text(opt.rawVal.value.capitalized)
-                    Spacer()
-                    Image(systemName: opt.rawVal.icon)
-                  }
                 }
               }
             }
@@ -170,11 +153,13 @@ struct BehaviorPanel: View {
               HStack {
                 Text("Default search sorting")
                 Spacer()
-                Image(systemName: subredditFeedDefSettings.preferredSearchSort.rawVal.icon)
+                Image(systemName: subredditFeedDefSettings.preferredSearchSort.meta.icon)
+                  .foregroundStyle(Color.accentColor)
               }
               .foregroundColor(.primary)
             }
           }
+          
           
           VStack(alignment: .leading) {
             HStack {

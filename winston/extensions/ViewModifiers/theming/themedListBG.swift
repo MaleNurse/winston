@@ -23,36 +23,37 @@ struct ThemedListBGModifier: ViewModifier {
   func body(content: Content) -> some View {
     let actuallyBrighter = brighter && !forceNonBrighter
     content
+      .scrollContentBackground(.hidden)
       .onAppear {
         updateImg(bg, cs)
       }
-      .onChange(of: bg) { val in
+      .onChange(of: bg) { _, val in
         updateImg(val, cs)
       }
-      .onChange(of: cs) { val in
+      .onChange(of: cs) { _, val in
         updateImg(bg, val)
       }
-      .background(
-        disable || uiImage == nil
-        ? nil
-        : GeometryReader { geo in
-          Image(uiImage: uiImage)
-            .antialiased(true).resizable()
-            .aspectRatio(contentMode: .fill)
-            .saturation(!actuallyBrighter ? 1 : 0.75)
-            .contrast(!actuallyBrighter ? 1 : 0.6)
-            .brightness(!actuallyBrighter ? 0 : cs == .dark ? 0.25 : 0)
-            .frame(width: geo.size.width, height: geo.size.height)
-        }.edgesIgnoringSafeArea(.all).allowsHitTesting(false)
-      )
-      .background(
-        disable || uiImage != nil
-        ? nil
-        : GeometryReader { geo in
-          returnColor(bg: bg, cs: cs, brighter: actuallyBrighter)
-            .frame(width: geo.size.width, height: geo.size.height)
-        }.edgesIgnoringSafeArea(.all).allowsHitTesting(false))
-      .scrollContentBackground(.hidden)
+      .background {
+        if let uiImage, !disable {
+          GeometryReader { geo in
+            Image(uiImage: uiImage)
+              .antialiased(true).resizable()
+              .aspectRatio(contentMode: .fill)
+              .saturation(!actuallyBrighter ? 1 : 0.75)
+              .contrast(!actuallyBrighter ? 1 : 0.6)
+              .brightness(!actuallyBrighter ? 0 : cs == .dark ? 0.25 : 0)
+              .frame(width: geo.size.width, height: geo.size.height)
+          }.edgesIgnoringSafeArea(.all).allowsHitTesting(false)
+        }
+      }
+      .background {
+        if !disable && uiImage == nil {
+          GeometryReader { geo in
+            returnColor(bg: bg, cs: cs, brighter: actuallyBrighter)
+              .frame(width: geo.size.width, height: geo.size.height)
+          }.edgesIgnoringSafeArea(.all).allowsHitTesting(false)
+        }
+      }
   }
 }
 

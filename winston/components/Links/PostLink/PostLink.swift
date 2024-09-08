@@ -15,7 +15,7 @@ let POSTLINK_INNER_H_PAD: CGFloat = 16
 
 struct PostLink: View, Equatable, Identifiable {
   static func == (lhs: PostLink, rhs: PostLink) -> Bool {
-    return lhs.id == rhs.id && lhs.repostAvatarRequest?.url == rhs.repostAvatarRequest?.url && lhs.theme == rhs.theme && lhs.defSettings == rhs.defSettings && lhs.compactPerSubreddit == rhs.compactPerSubreddit
+    return lhs.id == rhs.id && lhs.repostAvatarRequest?.url == rhs.repostAvatarRequest?.url && lhs.defSettings == rhs.defSettings && lhs.compactPerSubreddit == rhs.compactPerSubreddit && lhs.theme == rhs.theme && lhs.contentWidth == rhs.contentWidth
   }
   
   //  var disableOuterVSpacing = false
@@ -60,18 +60,26 @@ struct PostLink: View, Equatable, Identifiable {
 }
 
 extension View {
-  func postLinkStyle(showSubBottom: Bool = false, post: Post, sub: Subreddit, theme: SubPostsListTheme, size: CGSize, secondary: Bool, openPost: @escaping () -> (), readPostOnScroll: Bool, hideReadPosts: Bool) -> some View {
+  func postLinkStyle(showSubBottom: Bool = false, post: Post, sub: Subreddit, theme: PostLinkTheme, size: CGSize, secondary: Bool, openPost: @escaping () -> (), readPostOnScroll: Bool, hideReadPosts: Bool) -> some View {
     let seen = (post.data?.winstonSeen ?? false)
-    let fadeReadPosts = theme.theme.unseenType == .fade
+    let fadeReadPosts = theme.unseenType == .fade
     return self
-      .padding(EdgeInsets(top: theme.theme.innerPadding.vertical, leading: theme.theme.innerPadding.horizontal, bottom: theme.theme.innerPadding.vertical, trailing: theme.theme.innerPadding.horizontal))
-      .background(PostLinkBG(theme: theme, stickied: post.data?.stickied, secondary: secondary).equatable())
-      .overlay(PostLinkGlowDot(unseenType: theme.theme.unseenType, seen: seen, badge: false).equatable(), alignment: .topTrailing)
+      .padding(EdgeInsets(top: theme.innerPadding.vertical, leading: theme.innerPadding.horizontal, bottom: theme.innerPadding.vertical, trailing: theme.innerPadding.horizontal))
+      .background(PostLinkBG(theme: theme, stickied: post.data?.stickied, secondary: secondary))
+      .overlay(PostLinkGlowDot(unseenType: theme.unseenType, seen: seen, badge: false), alignment: .topTrailing)
+      .geometryGroup()
       .contentShape(Rectangle())
       .compositingGroup()
 //      .brightness(isOpen.wrappedValue ? 0.075 : 0)
-      .opacity(fadeReadPosts && seen ? theme.theme.unseenFadeOpacity : 1)
-      .contextMenu(menuItems: { PostLinkContext(post: post) }, preview: { PostLinkContextPreview(post: post, sub: sub) })
+      .opacity(fadeReadPosts && seen ? theme.unseenFadeOpacity : 1)
+      .contextMenu(menuItems: {
+        PostLinkContext(post: post)
+        
+        if let permalink = post.data?.permalink, let permaURL = URL(string: "https://reddit.com\(permalink.escape.urlEncoded)") {
+          ShareLink(item: permaURL) { Label("Share", systemImage: "square.and.arrow.up") }
+        }
+        
+      }, preview: { PostLinkContextPreview(post: post, sub: sub) })
       .foregroundStyle(.primary)
       .multilineTextAlignment(.leading)
       .onDisappear {
@@ -125,33 +133,33 @@ struct PostLinkBG: View, Equatable {
     return lhs.theme == rhs.theme && lhs.stickied == rhs.stickied && lhs.secondary == rhs.secondary
   }
   
-  let theme: SubPostsListTheme
+  let theme: PostLinkTheme
   let stickied: Bool?
   let secondary: Bool
   var body: some View {
     ZStack {
-      if !secondary && theme.theme.outerHPadding == 0 {
-        theme.theme.bg.color()
+      if !secondary && theme.outerHPadding == 0 {
+        theme.bg.color()
         if stickied ?? false {
-          theme.theme.stickyPostBorderColor.color()
+          theme.stickyPostBorderColor.color()
         }
       } else {
         
-        if theme.theme.bg.blurry {
-          RR(theme.theme.cornerRadius, .ultraThinMaterial).equatable()
+        if theme.bg.blurry {
+          RR(theme.cornerRadius, .ultraThinMaterial)
         }
         
-        RoundedRectangle(cornerRadius: theme.theme.cornerRadius, style: .continuous).fill(secondary ? .primary.opacity(0.06) : theme.theme.bg.color())
+        RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous).fill(secondary ? .primary.opacity(0.06) : theme.bg.color())
         
         if (stickied ?? false) {
-          RoundedRectangle(cornerRadius: theme.theme.cornerRadius, style: .continuous)
-            .stroke(theme.theme.stickyPostBorderColor.color(), lineWidth: theme.theme.stickyPostBorderColor.thickness)
+          RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+            .stroke(theme.stickyPostBorderColor.color(), lineWidth: theme.stickyPostBorderColor.thickness)
         }
         
       }
     }
     .allowsHitTesting(false)
-    .mask(RR(theme.theme.cornerRadius, Color.black).equatable())
+    .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
   }
 }
 

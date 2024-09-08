@@ -9,11 +9,11 @@ import Foundation
 import Alamofire
 
 extension RedditAPI {
-  func fetchInbox() async -> [MessageData]? {
-    let params = FetchInboxPayload()
+  func fetchInbox(after: String = "", limit: Int) async -> ([MessageData]?, String?)? {
+    let params = FetchInboxPayload(after: after, limit: limit)
     switch await self.doRequest("\(RedditAPI.redditApiURLBase)/message/inbox.json", method: .get, params: params, paramsLocation: .queryString, decodable: Listing<MessageData>.self) {
     case .success(let data):
-      return data.data?.children?.map { $0.data }.compactMap { $0 }
+      return (data.data?.children?.map { $0.data }.compactMap { $0 }, data.data?.after)
     case .failure(let error):
       print(error)
       return nil
@@ -30,5 +30,6 @@ extension RedditAPI {
     var limit = 25
     var show = "all"
     var sr_detail = 1
+    var raw_json = 1
   }
 }

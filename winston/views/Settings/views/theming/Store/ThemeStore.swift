@@ -14,7 +14,7 @@ struct ThemeStore: View {
   @State var themes: [ThemeData] = []
   @State private var isRefreshing = false // Track the refreshing state
   @State private var isPresentingUploadSheet = false
-  @StateObject var searchQuery = DebouncedText(delay: 0.35)
+  @State var searchQuery = Debouncer("", delay: 0.35)
   @Environment(\.useTheme) private var theme
   var body: some View {
     HStack{
@@ -35,7 +35,7 @@ struct ThemeStore: View {
         }
       }
       .themedListBG(theme.lists.bg)
-      .searchable(text: $searchQuery.text)
+      .searchable(text: $searchQuery.value)
       .onChange(of: searchQuery.debounced) { val in
         Task{
           if val == "" {
@@ -90,7 +90,7 @@ struct OnlineThemeItem: View {
       .frame(width: 52, height: 52)
       .background(RR(16, theme.color?.color() ?? .blue))
       VStack(alignment: .leading, spacing: 0) {
-        Text(theme.theme_name)
+        Text(theme.theme_name ?? "")
           .fontSize(16, .semibold)
           .frame(maxWidth: 200)
           .lineLimit(1)

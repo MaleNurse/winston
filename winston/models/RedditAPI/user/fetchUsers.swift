@@ -68,7 +68,7 @@ extension RedditAPI {
           comment.winstonData?.avatarImageRequest = avatarsDict[authorFullname]
         }
       }
-      Task { [avatarsDict] in await self.updateCommentsWithAvatar(comments: comment.childrenWinston.data, avatarSize: avatarSize, presentAvatarsDict: avatarsDict) }
+      Task { [avatarsDict] in await self.updateCommentsWithAvatar(comments: comment.childrenWinston, avatarSize: avatarSize, presentAvatarsDict: avatarsDict) }
     }
   }
   
@@ -92,36 +92,26 @@ extension RedditAPI {
     
     if !nonWinstonAppNames.isEmpty, let data = await self.fetchUsers(nonWinstonAppNames) {
       //      let avatarSize = Defaults[]
-      var reqs: [ImageRequest] = []
       let newDict = data.compactMapValues { val in
         if let urlStr = val.profile_img, let url = URL(string: String(urlStr.split(separator: "?")[0])) {
           //          let userInfoKey = ImageRequest.UserInfoKey()
           //          ImageProcessing
-          let thumbOpt = ImageRequest.ThumbnailOptions(size: .init(width: avatarSize, height: avatarSize), unit: .points, contentMode: .aspectFill)
-          let req = ImageRequest(url: url, processors: [ImageProcessors.ScaleFixer()], priority: .veryHigh, userInfo: [.thumbnailKey: thumbOpt])
-          reqs.append(req)
+//          let thumbOpt = ImageRequest.ThumbnailOptions(size: .init(width: avatarSize, height: avatarSize), unit: .points, contentMode: .aspectFill)
+//          let req = ImageRequest(url: url, processors: [ImageProcessors.ScaleFixer()], priority: .veryHigh, userInfo: [.thumbnailKey: thumbOpt])
+          let req = ImageRequest(url: url, processors: [ImageProcessors.Resize(width: avatarSize), ImageProcessors.ScaleFixer()], priority: .veryHigh)
           return req
         }
         return nil
       }
 
-      Post.prefetcher.startPrefetching(with: reqs)
       return newDict.merging(returnDict) { x, _ in x }
     }
     return returnDict
   }
   
-  func addImgReqToAvatarCache(_ author: String, _ url: String, avatarSize: Double) {
-    let url = URL(string: String(url.split(separator: "?")[0]))
-    let req = ImageRequest(url: url, processors: [.resize(width: avatarSize)], priority: .veryHigh)
-    Post.prefetcher.startPrefetching(with: [req])
-    withAnimation {
-      Caches.avatars.addKeyValue(key: author, data: { req })
-    }
-  }
-  
   struct FetchUsersByIDPayload: Codable {
     let ids: String
+    var raw_json = 1
   }
   
   typealias MultipleUsersDictionary = [String: MultipleUsersUser]
@@ -143,7 +133,7 @@ func getNamesFromComments(_ comments: [Comment]) -> [String] {
     if let fullname = comment.data?.author_fullname {
       namesArr.append(fullname)
     }
-    namesArr += getNamesFromComments(comment.childrenWinston.data)
+    namesArr += getNamesFromComments(comment.childrenWinston)
   }
   return namesArr
 }

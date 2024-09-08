@@ -13,6 +13,7 @@ struct TabBarOverlay: View {
   var meTabTap: () -> ()
   
   @State private var bottomSafeArea = getSafeArea().bottom
+  @State private var update = 0
   
   @Environment(\.tabBarHeight) private var tabBarHeight
   var body: some View {
@@ -24,13 +25,13 @@ struct TabBarOverlay: View {
             if tab == .me {
               AccountSwitcherTrigger(onTap: { Nav.shared.activeTab = .me }) {
                 Color.clear
-                  .frame(width: .screenW / 5, height: max(0, (tabBarHeight)))
+                  .frame(width: geo.size.width / 5, height: max(0, (tabBarHeight)))
                   .background(Color.hitbox)
                   .contentShape(Rectangle())
               }
             } else {
               Color.clear
-                .frame(width: .screenW / 5, height: max(0, (tabBarHeight)))
+                .frame(width: geo.size.width / 5, height: max(0, (tabBarHeight)))
                 .background(Color.hitbox)
                 .contentShape(Rectangle())
                 .overlay { SimpleTappableView { Nav.shared.activeTab = tab } }
@@ -38,7 +39,7 @@ struct TabBarOverlay: View {
           }
         }
         .frame(overlaySize)
-        .swipeAnywhere(size: overlaySize)
+        .swipeAnywhere(size: overlaySize, activeTab: Nav.shared.activeTab)
         .frame(overlaySize)
         .contentShape(Rectangle())
         .padding(.bottom, bottomSafeArea)

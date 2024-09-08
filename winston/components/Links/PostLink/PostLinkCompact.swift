@@ -36,9 +36,9 @@ struct PostLinkCompact: View, Equatable, Identifiable {
     return lhs.id == rhs.id && lhs.theme == rhs.theme && lhs.contentWidth == rhs.contentWidth && lhs.defSettings == rhs.defSettings
   }
   var id: String
-  @EnvironmentObject var post: Post
-  @EnvironmentObject var winstonData: PostWinstonData
-  @EnvironmentObject var sub: Subreddit
+  @Environment(\.contextPost) var post
+  @Environment(\.contextSubreddit) var sub
+  @Environment(\.contextPostWinstonData) var winstonData
   weak var controller: UIViewController?
   var theme: SubPostsListTheme
   var showSub = false
@@ -86,7 +86,7 @@ struct PostLinkCompact: View, Equatable, Identifiable {
   @ViewBuilder
   func mediaComponentCall(showURLInstead: Bool = false) -> some View {
     if let data = post.data, let extractedMedia = post.winstonData?.extractedMedia {
-      MediaPresenter(postDimensions: $winstonData.postDimensions, controller: controller, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: !defSettings.lightboxReadsPost ? nil : markAsRead, cornerRadius: theme.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, showURLInstead: showURLInstead, media: extractedMedia, over18: over18, compact: true, contentWidth: winstonData.postDimensions.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: defSettings.maxMediaHeightScreenPercentage, resetVideo: resetVideo)
+      MediaPresenter(winstonData: winstonData, controller: controller, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: !defSettings.lightboxReadsPost ? nil : markAsRead, cornerRadius: theme.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, showURLInstead: showURLInstead, media: extractedMedia, over18: over18, compact: true, contentWidth: winstonData.postDimensions.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: defSettings.maxMediaHeightScreenPercentage, resetVideo: resetVideo)
         .allowsHitTesting(defSettings.isMediaTappable)
     }
   }
@@ -95,7 +95,6 @@ struct PostLinkCompact: View, Equatable, Identifiable {
   func votesPiece() -> some View {
     if let data = post.data, defSettings.showVotesCluster {
       VotesCluster(votesKit: data.votesKit, voteAction: post.vote, vertical: true, showUpVoteRatio: defSettings.showUpVoteRatio).fontSize(22, .medium)
-        .frame(maxHeight: .infinity)
         .fontSize(22, .medium)
     }
   }
@@ -104,7 +103,7 @@ struct PostLinkCompact: View, Equatable, Identifiable {
   func mediaPiece() -> some View {
     if let extractedMedia = post.winstonData?.extractedMedia {
       if case .repost(let repost) = extractedMedia, let repostData = repost.data, let url = URL(string: "https://reddit.com/r/\(repostData.subreddit)/comments/\(repost.id)") {
-        PreviewLink(url: url, compact: true, previewModel: PreviewModel.get(url, compact: true))
+        PreviewLink(url: url, compact: true, previewModel: PreviewModel(url, compact: true))
       } else {
         mediaComponentCall()
       }
@@ -124,7 +123,7 @@ struct PostLinkCompact: View, Equatable, Identifiable {
           
           VStack(alignment: .leading, spacing: theme.theme.verticalElementsSpacing) {
             VStack(alignment: .leading, spacing: theme.theme.verticalElementsSpacing / 2) {
-              PostLinkTitle(attrString: winstonData.titleAttr, label: data.title.escape, theme: theme.theme.titleText, size: winstonData.postDimensions.titleSize, nsfw: over18, flair: data.link_flair_text)
+              PostLinkTitle(attrString: winstonData.titleAttr, label: data.title, theme: theme.theme.titleText, size: winstonData.postDimensions.titleSize)
               
               if let extractedMedia = post.winstonData?.extractedMedia {
                 if case .repost(let repost) = extractedMedia, let repostData = repost.data, let url = URL(string: "https://reddit.com/r/\(repostData.subreddit)/comments/\(repost.id)") {
@@ -154,7 +153,7 @@ struct PostLinkCompact: View, Equatable, Identifiable {
         .frame(maxWidth: .infinity, alignment: .topLeading)
         
       }
-      .postLinkStyle(showSubBottom: showSub && theme.theme.badge.avatar.visible, post: post, sub: sub, theme: theme, size: winstonData.postDimensions.size, secondary: secondary, openPost: openPost, readPostOnScroll: defSettings.readOnScroll, hideReadPosts: defSettings.hideOnRead)
+      .postLinkStyle(showSubBottom: showSub && theme.theme.badge.avatar.visible, post: post, sub: sub, theme: theme.theme, size: winstonData.postDimensions.size, secondary: secondary, openPost: openPost, readPostOnScroll: defSettings.readOnScroll, hideReadPosts: defSettings.hideOnRead)
       .swipyUI(onTap: openPost, actionsSet: defSettings.swipeActions, entity: post)
 //      .frame(width: winstonData.postDimensions.size.width, height: winstonData.postDimensions.size.height)
     }

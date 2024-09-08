@@ -10,29 +10,28 @@ import Defaults
 import NukeUI
 
 struct PostLinkNormalSelftext: View, Equatable {
-  static func == (lhs: PostLinkNormalSelftext, rhs: PostLinkNormalSelftext) -> Bool {
-    return lhs.selftext == rhs.selftext && lhs.theme == rhs.theme
-  }
-  var selftext: String
+  var selftext: String?
   var theme: ThemeText
   var body: some View {
-    Text(selftext).lineLimit(3)
-      .fontSize(theme.size, theme.weight.t)
-      .foregroundColor(theme.color())
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(maxWidth: .infinity, alignment: .topLeading)
+    if let selftext {
+      Text(selftext).lineLimit(3)
+        .fontSize(theme.size, theme.weight.t)
+        .foregroundColor(theme.color())
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
     //      .id("body")
   }
 }
 
 struct PostLinkNormal: View, Equatable, Identifiable {
   static func == (lhs: PostLinkNormal, rhs: PostLinkNormal) -> Bool {
-    return lhs.id == rhs.id && lhs.theme == rhs.theme && lhs.contentWidth == rhs.contentWidth && lhs.secondary == rhs.secondary && lhs.defSettings == rhs.defSettings
+    return lhs.id == rhs.id && lhs.contentWidth == rhs.contentWidth && lhs.secondary == rhs.secondary && lhs.defSettings == rhs.defSettings && lhs.theme == rhs.theme
   }
   
-  @EnvironmentObject var post: Post
-  @EnvironmentObject var winstonData: PostWinstonData
-  @EnvironmentObject var sub: Subreddit
+  @Environment(\.contextPost) var post
+  @Environment(\.contextSubreddit) var sub
+  @Environment(\.contextPostWinstonData) var winstonData
   var id: String
   weak var controller: UIViewController?
   var theme: SubPostsListTheme
@@ -83,7 +82,7 @@ struct PostLinkNormal: View, Equatable, Identifiable {
   func mediaComponentCall() -> some View {
     if let data = post.data {
       if let extractedMedia = winstonData.extractedMedia {
-        MediaPresenter(postDimensions: $winstonData.postDimensions, controller: controller, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: !defSettings.lightboxReadsPost ? nil : markAsRead, cornerRadius: theme.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, media: extractedMedia, over18: over18, compact: false, contentWidth: winstonData.postDimensions.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: defSettings.maxMediaHeightScreenPercentage, resetVideo: resetVideo)
+        MediaPresenter(winstonData: winstonData, controller: controller, postTitle: data.title, badgeKit: data.badgeKit, avatarImageRequest: winstonData.avatarImageRequest, markAsSeen: !defSettings.lightboxReadsPost ? nil : markAsRead, cornerRadius: theme.theme.mediaCornerRadius, blurPostLinkNSFW: defSettings.blurNSFW, media: extractedMedia, over18: over18, compact: false, contentWidth: winstonData.postDimensions.mediaSize?.width ?? 0, maxMediaHeightScreenPercentage: defSettings.maxMediaHeightScreenPercentage, resetVideo: resetVideo)
           .allowsHitTesting(defSettings.isMediaTappable)
         
         if case .repost(let repost) = extractedMedia {
@@ -100,11 +99,9 @@ struct PostLinkNormal: View, Equatable, Identifiable {
             )
             .background(Color.primary.opacity(0.05))
             .cornerRadius(theme.theme.mediaCornerRadius)
-            //                }
-            //            .swipyRev(size: repostWinstonData.postDimensions.size, actionsSet: postSwipeActions, entity: repost)
-            .environmentObject(repost)
-            .environmentObject(repostWinstonData)
-            .environmentObject(repostSub)
+            .environment(\.contextPost, repost)
+            .environment(\.contextSubreddit, repostSub)
+            .environment(\.contextPostWinstonData, repostWinstonData)
           }
         }
       }
@@ -113,24 +110,25 @@ struct PostLinkNormal: View, Equatable, Identifiable {
   
   var body: some View {
     if let data = post.data {
-      let over18 = data.over_18 ?? false
+//      let over18 = data.over_18 ?? false
       VStack(alignment: .leading, spacing: theme.theme.verticalElementsSpacing) {
         
-        if theme.theme.showDivider && defSettings.dividerPosition == .top { SubsNStuffLine().equatable() }
+        if theme.theme.showDivider && defSettings.dividerPosition == .top { SubsNStuffLine() }
         
         if defSettings.titlePosition == .bottom { mediaComponentCall() }
         
-        PostLinkTitle(attrString: winstonData.titleAttr, label: data.title.escape, theme: theme.theme.titleText, size: winstonData.postDimensions.titleSize, nsfw: over18, flair: data.link_flair_text)
-          .padding(.bottom, 5)
-        
-        if !data.selftext.isEmpty && defSettings.showSelfText {
-          PostLinkNormalSelftext(selftext: data.selftext, theme: theme.theme.bodyText)
-            .lineSpacing(theme.theme.linespacing)
+        VStack(alignment: .leading, spacing: theme.theme.verticalElementsSpacing / 2.5) {
+          PostLinkTitle(attrString: winstonData.titleAttr, label: data.title, theme: theme.theme.titleText, size: winstonData.postDimensions.titleSize)
+          
+          if !(data.selftext?.isEmpty ?? true) && defSettings.showSelfText, let selftext = data.selftext {
+            PostLinkNormalSelftext(selftext: selftext, theme: theme.theme.bodyText)
+              .lineSpacing(theme.theme.linespacing)
+          }
         }
         
         if defSettings.titlePosition == .top { mediaComponentCall() }
         
-        if theme.theme.showDivider && defSettings.dividerPosition == .bottom { SubsNStuffLine().equatable() }
+        if theme.theme.showDivider && defSettings.dividerPosition == .bottom { SubsNStuffLine() }
         
         HStack {
           let newCommentsCount = winstonData.seenCommentsCount == nil ? nil : data.num_comments - winstonData.seenCommentsCount!
@@ -142,7 +140,7 @@ struct PostLinkNormal: View, Equatable, Identifiable {
           
         }
       }
-      .postLinkStyle(post: post, sub: sub, theme: theme, size: winstonData.postDimensions.size, secondary: secondary, openPost: openPost, readPostOnScroll: defSettings.readOnScroll, hideReadPosts: defSettings.hideOnRead)
+      .postLinkStyle(post: post, sub: sub, theme: theme.theme, size: winstonData.postDimensions.size, secondary: secondary, openPost: openPost, readPostOnScroll: defSettings.readOnScroll, hideReadPosts: defSettings.hideOnRead)
       .swipyUI(onTap: openPost, actionsSet: defSettings.swipeActions, entity: post, secondary: secondary)
     }
   }

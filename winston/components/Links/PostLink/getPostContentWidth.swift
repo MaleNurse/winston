@@ -10,7 +10,7 @@ import SwiftUI
 import Defaults
 
 func getPostContentWidth(contentWidth: Double = .screenW, secondary: Bool = false, theme: WinstonTheme? = nil) -> CGFloat {
-  let selectedTheme = theme ?? getEnabledTheme()
+  let selectedTheme = theme ?? InMemoryTheme.shared.currentTheme
   let theme = selectedTheme.postLinks.theme
   var value: CGFloat = 0
   if IPAD {
@@ -49,7 +49,7 @@ struct PostDimensions: Hashable, Equatable {
   init(contentWidth: Double, compact: Bool? = nil, theme: PostLinkTheme? = nil, titleSize: CGSize, bodySize: CGSize? = nil, urlTagHeight: Double? = nil, mediaSize: CGSize? = nil, dividerSize: CGSize? = nil, badgeSize: CGSize, spacingHeight: Double) {
     self.contentWidth = contentWidth
     self.compact = compact ?? Defaults[.PostLinkDefSettings].compactMode.enabled
-    self.theme = theme ?? getEnabledTheme().postLinks.theme
+    self.theme = theme ?? InMemoryTheme.shared.currentTheme.postLinks.theme
     self.titleSize = titleSize
     self.bodySize = bodySize
     self.urlTagHeight = urlTagHeight
@@ -62,7 +62,7 @@ struct PostDimensions: Hashable, Equatable {
 
 func getPostDimensions(post: Post, winstonData: PostWinstonData? = nil, columnWidth: Double = .screenW, secondary: Bool = false, rawTheme: WinstonTheme? = nil, compact: Bool? = nil, subId: String? = nil) -> PostDimensions {
   if let data = post.data {
-    let selectedTheme = rawTheme ?? getEnabledTheme()
+    let selectedTheme = rawTheme ?? InMemoryTheme.shared.currentTheme
     let showSelfPostThumbnails = Defaults[.PostLinkDefSettings].compactMode.showPlaceholderThumbnail
     let compact = compact ?? Defaults[.SubredditFeedDefSettings].compactPerSubreddit[subId ?? data.subreddit_id ?? ""] ?? Defaults[.PostLinkDefSettings].compactMode.enabled
     let showAuthorOnPostLinks = Defaults[.PostLinkDefSettings].showAuthor
@@ -73,7 +73,7 @@ func getPostDimensions(post: Post, winstonData: PostWinstonData? = nil, columnWi
     let theme = selectedTheme.postLinks.theme
     let postGeneralSpacing = theme.verticalElementsSpacing + theme.linespacing
     let title = data.title
-    let body = data.selftext
+    let body = data.selftext ?? ""
     
     var ACC_titleHeight: Double = 0
     var ACC_bodyHeight: Double = 0
@@ -183,7 +183,7 @@ func getPostDimensions(post: Post, winstonData: PostWinstonData? = nil, columnWi
     
     
     let theresTitle = true
-    let theresSelftext = !compact && !data.selftext.isEmpty
+    let theresSelftext = !compact && !(data.selftext?.isEmpty ?? true)
     let theresMedia = extractedMedia != nil
     let theresSubDivider = !compact && theme.showDivider
     let theresBadge = true

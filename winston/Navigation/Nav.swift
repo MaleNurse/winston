@@ -9,10 +9,11 @@ import Foundation
 import Combine
 import SafariServices
 import UIKit
+import SwiftUI
 
-class Nav: ObservableObject, Identifiable, Equatable {
+@Observable
+class Nav: Identifiable, Equatable {
   static let shared = Nav()
-  static let router = Nav.shared.activeRouter
   
   /* <Util static functions for ease of use> */
   static func back() { Nav.shared.activeRouter.goBack() }
@@ -21,17 +22,15 @@ class Nav: ObservableObject, Identifiable, Equatable {
   static func present(_ content: PresentingSheet?) { Nav.shared.presentingSheet = content }
   static func resetStack() { Nav.shared.activeRouter.resetNavPath() }
   /* </Util static functions for ease of use> */
-  
-  static let swipeAnywhereGestureName = "swipe-anywhere-winston"
-  
-  static private func newRouterForTab(_ tab: TabIdentifier, _ id: UUID) -> Router { Router(id: "\(tab.rawValue)TabRouter-\(id.uuidString)") }
     
-  enum TabIdentifier: String, Codable, Hashable, CaseIterable {
+  static private func newRouterForTab(_ tab: TabIdentifier, _ id: UUID) -> Router { Router(id: "\(tab.rawValue)TabRouter-\(id.uuidString)") }
+  
+  enum TabIdentifier: String, Codable, Hashable, CaseIterable, Identifiable, Equatable {
+    var id: String { self.rawValue }
     case posts, inbox, me, search, settings
   }
   
   enum PresentingSheet: Codable, Hashable, Identifiable, Equatable {
-    case tipJar
     case onboarding
     case editingCredential(RedditCredential)
     case announcement(Announcement)
@@ -43,7 +42,6 @@ class Nav: ObservableObject, Identifiable, Equatable {
       switch self {
       case .announcement(let ann): newID = ann.id
       case .editingCredential(let cred): newID = cred.id.uuidString
-      case .tipJar: newID = "tipJar"
       case .onboarding: newID = "onboarding"
       case .editingTheme(let theme): newID = theme.id
       case .sharedTheme(let themeData): newID = themeData.id
@@ -53,13 +51,13 @@ class Nav: ObservableObject, Identifiable, Equatable {
   }
   
   var id: UUID
-  @Published var activeTab: TabIdentifier {
+  var activeTab: TabIdentifier {
     willSet {
       if activeTab == newValue { self.activeRouter.resetNavPath() }
     }
   }
-  private var routers: [TabIdentifier:Router]
-  @Published var presentingSheetsQueue: [PresentingSheet] = []
+  var routers: [TabIdentifier:Router]
+  var presentingSheetsQueue: [PresentingSheet] = []
   var presentingSheet: PresentingSheet? {
     get { presentingSheetsQueue.isEmpty ? nil : presentingSheetsQueue[0] }
     set {
@@ -74,27 +72,13 @@ class Nav: ObservableObject, Identifiable, Equatable {
   }
   var activeRouter: Router { Nav.shared[activeTab] }
   private var cancellables = Set<AnyCancellable>()
-
+  
   
   private init(activeTab: TabIdentifier = .posts) {
-    let newSwipeAnywhereGesture: UIPanGestureRecognizer = {
-      let gesture = UIPanGestureRecognizer()
-      gesture.name = Self.swipeAnywhereGestureName
-      gesture.isEnabled = true
-      return gesture
-    }()
-    
     let id = UUID()
     self.id = id
     self.activeTab = activeTab
     self.routers = Dictionary(uniqueKeysWithValues: TabIdentifier.allCases.map { ($0, Self.newRouterForTab($0, id)) })
-    
-    self.routers.values.forEach { router in
-      router.$isAtRoot.sink { _ in
-          self.objectWillChange.send()
-        }
-        .store(in: &cancellables)
-    }
   }
   
   func navigateTo(_ tab: TabIdentifier, _ dest: Router.NavDest, _ reset: Bool = true) {
@@ -119,11 +103,15 @@ class Nav: ObservableObject, Identifiable, Equatable {
   }
   
   static func openURL(_ url: URL) {
-    let vc = SFSafariViewController(url: url)
-    UIApplication.shared.firstKeyWindow?.rootViewController?.present(vc, animated: true)
+    if url.scheme?.lowercased().contains(/http(s)?/)==true {
+      let vc = SFSafariViewController(url: url)
+      UIApplication.shared.firstKeyWindow?.rootViewController?.present(vc, animated: true)
+    } else {
+      UIApplication.shared.open(url)
+    }
   }
-
-
+  
+  
   static func openURL(_ urlStr: String) {
     if let url = URL(string: urlStr)  {
       openURL(url)

@@ -10,7 +10,7 @@ import SwiftUI
 import UIKit
 import NukeUI
 import OpenGraph
-import SkeletonUI
+//import SkeletonUI
 import YouTubePlayerKit
 import Defaults
 import Combine
@@ -18,30 +18,28 @@ import SafariServices
 
 struct PreviewLinkContent: View {
   var compact: Bool
-  @ObservedObject var viewModel: PreviewModel
+  var viewModel: PreviewModel
   var url: URL
   static let height: CGFloat = 88
-  @Environment(\.openURL) private var openURL
   @Default(.BehaviorDefSettings) private var behaviorDefSettings
   var body: some View {
-    PreviewLinkContentRaw(compact: compact, image: viewModel.image, title: viewModel.title, description: viewModel.description, loading: viewModel.loading, url: url, openURL: openURL)
+    PreviewLinkContentRaw(compact: compact, imageReq: viewModel.imageReq, title: viewModel.title, description: viewModel.description, loading: viewModel.loading, url: url)
   }
 }
 
 
 struct PreviewLinkContentRaw: View, Equatable {
   static func == (lhs: PreviewLinkContentRaw, rhs: PreviewLinkContentRaw) -> Bool {
-    lhs.image == rhs.image && lhs.title == rhs.title && lhs.compact == rhs.compact && lhs.description == rhs.description && lhs.loading == rhs.loading && lhs.url == rhs.url
+    lhs.title == rhs.title && lhs.compact == rhs.compact && lhs.description == rhs.description && lhs.loading == rhs.loading && lhs.url == rhs.url
   }
   
   static let height: CGFloat = 88
   var compact: Bool
-  var image: String?
+  var imageReq: ImageRequest?
   var title: String?
   var description: String?
   var loading: Bool
   var url: URL
-  var openURL: OpenURLAction
     
   var body: some View {
     HStack(spacing: 16) {
@@ -49,7 +47,7 @@ struct PreviewLinkContentRaw: View, Equatable {
       if !compact {
         VStack(alignment: .leading, spacing: 2) {
           VStack(alignment: .leading, spacing: 0) {
-            Text(title?.escape ?? "No title detected")
+            Text(title ?? "No title detected")
               .fontSize(17, .medium)
               .lineLimit(1)
               .truncationMode(.tail)
@@ -61,7 +59,7 @@ struct PreviewLinkContentRaw: View, Equatable {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           
-          Text(description?.escape ?? "No description detected")
+          Text(description ?? "No description detected")
             .fontSize(14)
             .lineLimit(2)
             .opacity(0.75)
@@ -71,8 +69,8 @@ struct PreviewLinkContentRaw: View, Equatable {
       }
       
       Group {
-        if let image = image, let imageURL = URL(string: image) {
-          URLImage(url: imageURL, processors: [.resize(width:  compact ? scaledCompactModeThumbSize() : 76)])
+        if let imageReq, let imgURL = imageReq.url {
+          URLImage(url: imgURL, imgRequest: imageReq, size: CGSize(compact ? scaledCompactModeThumbSize() : 76))
             .scaledToFill()
         } else {
           if loading {
