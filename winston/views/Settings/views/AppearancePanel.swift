@@ -32,18 +32,18 @@ struct AppearancePanel: View {
         //        }
         //        .listRowSeparator(.hidden)
         
-        Section {
-          WNavigationLink(value: .setting(.appIcon)) {
-            HStack{
-              Image(uiImage: AppIconManger.shared.currentAppIcon.preview)
-                .resizable()
-                .frame(width: 32, height: 32)
-                .mask(RoundedRectangle(cornerSize: CGSize(width: 10, height: 10)))
-              Text("App icon")
-            }
-          }
-        }
-        .listSectionSpacing(15)
+        //Section {
+        //  WNavigationLink(value: .setting(.appIcon)) {
+        //    HStack{
+        //      Image(uiImage: AppIconManger.shared.currentAppIcon.preview)
+        //        .resizable()
+        //        .frame(width: 32, height: 32)
+        //        .mask(RoundedRectangle(cornerSize: CGSize(width: 10, height: 10)))
+        //      Text("App icon")
+        //    }
+        //  }
+        //}
+        //.listSectionSpacing(15)
         
         Section {
           HStack(spacing: 12){
